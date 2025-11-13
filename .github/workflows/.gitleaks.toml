@@ -1,11 +1,6 @@
-[allowlist]
-  description = "允许某些安全的字符串"
-  regexes = [
-    'example.com',
-    'test-token'
-  ]
+# gitleaks config
+title = "Full repo scan"
 
-[[rules]]
-description = "Generic Password"
-regex = '''(?i)(password|pwd|pass)[:=]\s*['"]?[A-Za-z0-9!@#$%^&*()_+=-]{6,}['"]?'''
-tags = ["password"]
+[scan]
+# 扫描整个仓库而不仅仅是 diff
+git = false
