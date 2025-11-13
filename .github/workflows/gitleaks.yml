@@ -16,14 +16,18 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Run Gitleaks (custom)
+      - name: Run Gitleaks (manual install)
         run: |
-          curl -sSL https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks-linux-amd64.tar.gz | tar -xz
+          echo "🔍 Installing Gitleaks..."
+          curl -sSL https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks-linux-amd64 -o gitleaks
           chmod +x gitleaks
-          ./gitleaks detect --source . --no-git --redact --verbose
-
-      - name: Fail if leaks found
-        if: failure()
-        run: |
-          echo "❌ Gitleaks detected secrets! Please remove them before merging."
-          exit 1
+          echo "🚀 Running Gitleaks scan..."
+          ./gitleaks detect --source . --no-git --redact --verbose --report-format json --report-path gitleaks-report.json || exit_code=$?
+          echo "📄 Scan complete. Exit code: ${exit_code:-0}"
+          if [ "${exit_code:-0}" -ne 0 ]; then
+            echo "❌ Gitleaks detected secrets! See details below:"
+            cat gitleaks-report.json
+            exit 1
+          else
+            echo "✅ No leaks found."
+          fi
