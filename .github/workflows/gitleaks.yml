@@ -16,11 +16,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Run Gitleaks
-        uses: zricethezav/gitleaks-action@v2
-        with:
-          args: detect --source . --redact --verbose
-
+      - name: Run Gitleaks (custom)
+        run: |
+          curl -sSL https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks-linux-amd64.tar.gz | tar -xz
+          chmod +x gitleaks
+          ./gitleaks detect --source . --no-git --redact --verbose
 
       - name: Fail if leaks found
         if: failure()
