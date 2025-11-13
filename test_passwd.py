@@ -53,5 +53,12 @@ def start():
         conn.close()
 
 
+def read_pg():
+    conn = pymysql.connect(host='localhost', port=3306, user='root', password='888888', database='test_db',
+                           charset='utf8')
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    cursor = conn.cursor()
+
+
 if __name__ == '__main__':
     read_db()
