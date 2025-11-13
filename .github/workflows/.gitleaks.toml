@@ -1,17 +1,11 @@
-title = "Full Repository Secret Scan"
+title = "Repository Secret Scan"
 
 [extend]
-useDefault = true    # 启用内置规则
-
-[scan]
-git = false          # 扫描整个工作区而不是 diff/commit
-depth = 0            # 扫描所有历史（如果 git=true 时有效）
+useDefault = true
 
 [allowlist]
 files = ["test/.*", "mock_data/.*"]   # 忽略的路径
 regexes = ["example_key", "dummy_password"]
-
-# ======== 自定义规则 ========
 
 [[rules]]
 id = "mysql-password"
