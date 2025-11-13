@@ -16,10 +16,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Run Gitleaks (official)
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITLEAKS_COMMAND: detect --source . --no-git --redact --verbose
+      - name: Run Gitleaks
+        uses: zricethezav/gitleaks-action@v2
+        with:
+          args: detect --source . --no-git --redact --verbose
+
 
       - name: Fail if leaks found
         if: failure()
