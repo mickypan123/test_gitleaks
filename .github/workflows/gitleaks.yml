@@ -1,16 +1,58 @@
-name: gitleaks
-on: [ pull_request, push, workflow_dispatch ]
+name: gitleaks 全仓库扫描
+
+on:
+  pull_request:
+    branches: [ main, master ] # 可以在这里指定需要扫描的分支
+  push:
+    branches: [ main, master ]
+  workflow_dispatch: # 允许手动触发
+  schedule:
+    - cron: '0 4 * * *' # 每天凌晨4点运行一次全仓库扫描 (UTC)
+
 jobs:
   scan:
-    name: gitleaks
+    name: Gitleaks 全仓库历史扫描
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: 检出代码
+        uses: actions/checkout@v3
         with:
-          fetch-depth: 0
-      - uses: gitleaks/gitleaks-action@v2
-        with:
-          detect_mode: 'repo'
+          fetch-depth: 0 # 确保克隆了完整的Git历史，这是关键！
+
+      - name: 下载并安装 Gitleaks CLI
+        run: |
+          # 下载 Gitleaks 安装脚本并执行
+          # 这里我们指定了 Gitleaks 的版本，例如 v8.24.3
+          # 您可以根据需要更改版本，或者使用 'latest' 来获取最新版
+          curl -sfL https://raw.githubusercontent.com/gitleaks/gitleaks/master/scripts/install.sh | sh -s -- v8.24.3
+          # 将 gitleaks 可执行文件移动到 PATH 中
+          sudo mv gitleaks /usr/local/bin/gitleaks
+        shell: bash
+
+      - name: 运行 Gitleaks 全仓库扫描
+        run: |
+          # 执行 gitleaks detect 命令，扫描整个仓库的历史
+          # --source . 表示扫描当前目录（即整个仓库）
+          # --config 指定您的配置文件路径
+          # 确保没有添加 --log-opts=-1 或 --commit-from/to 参数
+          gitleaks detect \
+            --source . \
+            --config .github/workflows/.gitleaks.toml \
+            --redact \
+            -v \
+            --exit-code=2 \
+            --report-format=sarif \
+            --report-path=results.sarif \
+            --log-level=debug
         env:
+          # 如果您的 Gitleaks 许可证是组织账户必需的，请在此处设置
+          # GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+          # GITHUB_TOKEN 通常用于上传 SARIF 报告或与 GitHub API 交互
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITLEAKS_CONFIG: .github/workflows/.gitleaks.toml
+        shell: bash
+
+      - name: 上传 SARIF 报告 (可选)
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: results.sarif
+          # category: gitleaks # 可以添加类别，方便在GitHub Security tab中筛选
