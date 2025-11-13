@@ -1,19 +1,16 @@
-name: Gitleaks Secret Scan
-
-on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+name: gitleaks
+on: [ push, pull_request, workflow_dispatch ]
 
 jobs:
   scan:
-    name: gitleaks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Gitleaks (full repo scan)
+        uses: zricethezav/gitleaks-action@v2
+        with:
+          args: detect --source . --config=.gitleaks.toml --no-git --redact --verbose --exit-code=1
