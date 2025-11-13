@@ -8,26 +8,13 @@ on:
 
 jobs:
   gitleaks-scan:
+    name: gitleaks
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Run Gitleaks (manual install)
-        run: |
-          echo "🔍 Installing Gitleaks..."
-          curl -sSL https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks-linux-amd64 -o gitleaks
-          chmod +x gitleaks
-          echo "🚀 Running Gitleaks scan..."
-          ./gitleaks detect --source . --no-git --redact --verbose --report-format json --report-path gitleaks-report.json || exit_code=$?
-          echo "📄 Scan complete. Exit code: ${exit_code:-0}"
-          if [ "${exit_code:-0}" -ne 0 ]; then
-            echo "❌ Gitleaks detected secrets! See details below:"
-            cat gitleaks-report.json
-            exit 1
-          else
-            echo "✅ No leaks found."
-          fi
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }} # Only required for Organizations, not personal accounts.
